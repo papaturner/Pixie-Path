@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixie Path</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#f8f4ff;min-height:100vh;font-family:'Nunito',sans-serif;margin:0;padding:0;overflow-x:hidden}
+.phone{width:100%;min-height:100vh;background:#f8f4ff;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.status-bar{display:none}
+.top-bar{background:#2d0b5c;padding:10px 20px 14px;color:white;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.top-bar h1{font-family:'Fredoka One',cursive;font-size:22px;color:#ffd700;letter-spacing:1px}
+.screen{flex:1;overflow-y:auto;padding:14px;display:none;background:#f8f4ff;-webkit-overflow-scrolling:touch}
+.screen.active{display:block}
+.bottom-nav{background:#2d0b5c;display:flex;border-top:1px solid #4a2080;flex-shrink:0}
+.nav-btn{flex:1;padding:9px 2px 11px;border:none;background:transparent;color:#8b6abf;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:'Nunito',sans-serif;font-size:9px;font-weight:700;transition:color 0.2s}
+.nav-btn.active{color:#ffd700}
+.nav-btn svg{width:18px;height:18px;fill:currentColor}
+.section-title{font-family:'Fredoka One',cursive;font-size:19px;color:#2d0b5c;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card{background:white;border-radius:16px;padding:12px 14px;margin-bottom:10px;box-shadow:0 2px 8px rgba(45,11,92,0.08);border:1px solid #ede5ff}
+
+/* HOME */
+.welcome-banner{background:linear-gradient(135deg,#2d0b5c,#6b21a8);border-radius:18px;padding:18px;color:white;margin-bottom:14px;text-align:center}
+.welcome-banner h2{font-family:'Fredoka One',cursive;font-size:22px;color:#ffd700;margin-bottom:3px}
+.welcome-banner p{font-size:12px;color:#d8b4fe}
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.quick-card{background:white;border-radius:14px;padding:14px 10px;text-align:center;cursor:pointer;border:2px solid #ede5ff;transition:all 0.2s;box-shadow:0 2px 6px rgba(45,11,92,0.06)}
+.quick-card:hover{border-color:#7c3aed;transform:translateY(-2px)}
+.quick-card .icon{font-size:26px;margin-bottom:5px}
+.quick-card .label{font-size:11px;font-weight:700;color:#2d0b5c}
+.quick-card .count{font-size:10px;color:#8b6abf;margin-top:1px}
+
+/* MAP */
+.park-tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}
+.park-tab{flex-shrink:0;padding:7px 12px;border-radius:20px;border:2px solid #ede5ff;background:white;font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;color:#8b6abf;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.park-tab.active{color:white;border-color:transparent}
+.map-wrapper{position:relative;width:100%;height:230px;border-radius:16px;overflow:hidden;margin-bottom:10px;box-shadow:0 3px 12px rgba(45,11,92,0.2)}
+.map-wrapper svg{position:absolute;top:0;left:0;width:100%;height:100%}
+.pin-layer{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+.apin{position:absolute;width:26px;height:26px;border-radius:50%;border:2.5px solid white;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;transform:translate(-50%,-50%);transition:transform 0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.5);pointer-events:all;background:#ffd700}
+.apin:hover,.apin:active{transform:translate(-50%,-50%) scale(1.25)}
+.attr-panel{background:white;border-radius:14px;padding:12px 14px;margin-bottom:10px;border-left:4px solid #7c3aed;box-shadow:0 2px 8px rgba(45,11,92,0.1);min-height:56px;transition:all 0.2s}
+.attr-panel h3{font-size:14px;font-weight:700;color:#2d0b5c;margin-bottom:3px}
+.attr-panel p{font-size:12px;color:#4b5563;line-height:1.5}
+.attr-panel .hint{font-size:11px;color:#9ca3af;font-style:italic}
+.map-legend-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.legend-chip{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;border:1px solid}
+
+/* TIPS */
+.post-form{background:white;border-radius:14px;padding:12px;margin-bottom:12px;border:2px dashed #c4b5fd}
+.post-form textarea,.post-form select{width:100%;border:1px solid #e5e7eb;border-radius:10px;padding:9px;font-family:'Nunito',sans-serif;font-size:13px;color:#1f2937;background:#faf9ff;margin-bottom:7px}
+.post-form textarea:focus,.post-form select:focus{outline:2px solid #7c3aed;border-color:transparent}
+.post-form select{appearance:none}
+.submit-btn{border:none;border-radius:10px;padding:8px 16px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:opacity 0.2s}
+.submit-btn:hover{opacity:0.85}
+.tip-card{background:white;border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid #7c3aed;box-shadow:0 1px 4px rgba(45,11,92,0.07)}
+.tip-card .anon{font-size:10px;color:#8b6abf;font-weight:700;margin-bottom:3px}
+.tip-card .text{font-size:12px;color:#374151}
+.tip-card .time{font-size:10px;color:#9ca3af;margin-top:3px}
+.meetup-card{background:white;border-radius:12px;padding:10px 12px;margin-bottom:8px;border-left:4px solid #0d9488;box-shadow:0 1px 4px rgba(45,11,92,0.07)}
+.loc-tag{display:inline-block;background:#ccfbf1;color:#0f766e;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-bottom:4px}
+
+/* HIDDEN MICKEY */
+.found-counter{background:#2d0b5c;color:#ffd700;border-radius:12px;padding:11px;text-align:center;margin-bottom:12px;font-family:'Fredoka One',cursive;font-size:17px}
+.mickey-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mickey-card{background:white;border-radius:12px;padding:12px;text-align:center;cursor:pointer;border:2px solid #ede5ff;transition:all 0.2s;position:relative}
+.mickey-card.found{border-color:#ffd700;background:#fffbeb}
+.mickey-card .mickey-icon{font-size:28px;margin-bottom:5px}
+.mickey-card h4{font-size:11px;font-weight:700;color:#2d0b5c}
+.mickey-card p{font-size:10px;color:#6b7280;margin-top:2px}
+.found-badge{position:absolute;top:6px;right:6px;background:#ffd700;color:#2d0b5c;font-size:9px;font-weight:700;padding:2px 5px;border-radius:20px;display:none}
+.mickey-card.found .found-badge{display:block}
+
+/* FAVORITES */
+.fav-item{background:white;border-radius:12px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;border:1px solid #ede5ff}
+.fav-dot{width:38px;height:38px;border-radius:50%;background:#f5f0ff;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.fav-info h4{font-size:13px;font-weight:700;color:#2d0b5c}
+.fav-info p{font-size:11px;color:#6b7280}
+.remove-fav{margin-left:auto;background:none;border:none;font-size:17px;cursor:pointer;color:#d1d5db;transition:color 0.2s}
+.remove-fav:hover{color:#ef4444}
+.empty-state{text-align:center;padding:36px 16px;color:#9ca3af}
+.empty-state .emoji{font-size:44px;margin-bottom:10px}
+.empty-state p{font-size:13px}
+
+/* TOAST */
+.toast{position:absolute;top:14px;left:50%;transform:translateX(-50%) translateY(-80px);background:#2d0b5c;color:#ffd700;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;padding:9px 18px;border-radius:20px;white-space:nowrap;z-index:100;transition:transform 0.3s ease;box-shadow:0 4px 16px rgba(0,0,0,0.4)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.fav-btn{float:right;background:none;border:none;font-size:18px;cursor:pointer;transition:transform 0.2s;line-height:1}
+.fav-btn:hover{transform:scale(1.2)}
+.location-detail{background:white;border-radius:12px;padding:11px 13px;margin-bottom:8px;border:1px solid #ede5ff}
+.location-detail h3{font-size:13px;font-weight:700;color:#2d0b5c}
+.location-detail p{font-size:11px;color:#6b7280;margin-top:2px}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:#c4b5fd;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="phone">
+<div class="toast" id="toast"></div>
+
+
+<div class="top-bar">
+  <h1>&#10024; Pixie Path</h1>
+  <div style="font-size:15px;color:#ffd700;letter-spacing:2px">&#11088;&#11088;&#11088;</div>
+</div>
+
+<!-- HOME -->
+<div class="screen active" id="screen-home">
+  <div class="welcome-banner">
+    <h2>Welcome to the Magic!</h2>
+    <p>Your Disney World companion &#8212; discover, connect, explore all 4 parks.</p>
+  </div>
+  <div class="quick-grid">
+    <div class="quick-card" onclick="goTo('map')">
+      <div class="icon">&#128506;</div><div class="label">Park Maps</div><div class="count">4 parks</div>
+    </div>
+    <div class="quick-card" onclick="goTo('tips')">
+      <div class="icon">&#128221;</div><div class="label">Park Tips</div><div class="count" id="home-tips-count">2 tips</div>
+    </div>
+    <div class="quick-card" onclick="goTo('meetup')">
+      <div class="icon">&#128101;</div><div class="label">Meetups</div><div class="count" id="home-meetup-count">2 meetups</div>
+    </div>
+    <div class="quick-card" onclick="goTo('mickey')">
+      <div class="icon">&#9679;</div><div class="label">Hidden Mickeys</div><div class="count" id="home-mickey-count">0 / 8 found</div>
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-size:12px;font-weight:700;color:#2d0b5c;margin-bottom:5px">&#9832; Your Pixie Path Trail</div>
+    <div style="font-size:11px;color:#6b7280">Your trail lights up as you walk through the park. Share your path with other guests!</div>
+    <div style="margin-top:8px;background:#f5f0ff;border-radius:10px;padding:9px;display:flex;align-items:center;gap:10px">
+      <div style="font-size:20px">&#9832;</div>
+      <div style="font-size:11px;color:#2d0b5c;font-weight:600">Trail active &#8212; 0.4 mi walked today</div>
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-size:12px;font-weight:700;color:#2d0b5c;margin-bottom:4px">&#9733; Saved Favorites</div>
+    <div style="font-size:11px;color:#6b7280" id="home-fav-text">Tap &#9734; on map locations to save them here!</div>
+  </div>
+</div>
+
+<!-- MAP -->
+<div class="screen" id="screen-map">
+  <div class="section-title">&#128506; Park Maps</div>
+  <div class="park-tabs" id="park-tabs">
+    <button class="park-tab active" id="tab-mk" onclick="selectPark('mk')">&#127984; Magic Kingdom</button>
+    <button class="park-tab" id="tab-epcot" onclick="selectPark('epcot')">&#127758; EPCOT</button>
+    <button class="park-tab" id="tab-hs" onclick="selectPark('hs')">&#127908; Hollywood Studios</button>
+    <button class="park-tab" id="tab-ak" onclick="selectPark('ak')">&#127807; Animal Kingdom</button>
+  </div>
+  <div class="map-wrapper" id="map-wrapper">
+    <div id="map-svg-slot"></div>
+    <div class="pin-layer" id="pin-layer"></div>
+  </div>
+  <div class="attr-panel" id="attr-panel">
+    <div class="hint">&#128071; Tap a pin on the map to see attraction details</div>
+  </div>
+  <div class="map-legend-row" id="map-legend"></div>
+
+  <div class="section-title" style="font-size:16px;margin-top:4px">&#128205; Park Locations</div>
+  <div id="nearby-list"></div>
+</div>
+
+<!-- TIPS -->
+<div class="screen" id="screen-tips">
+  <div class="section-title">&#128221; Anonymous Park Tips</div>
+  <div class="post-form">
+    <div style="font-size:11px;font-weight:700;color:#7c3aed;margin-bottom:7px">&#128100; Share a tip anonymously!</div>
+    <textarea id="tip-input" rows="3" placeholder="e.g. Space Mountain walk-on right now! Go before 10am &#128640;"></textarea>
+    <button class="submit-btn" style="background:#7c3aed;color:white" onclick="postTip()">Post Tip &#128221;</button>
+  </div>
+  <div class="section-title" style="font-size:16px">Live Tip Feed</div>
+  <div id="tips-feed">
+    <div class="tip-card"><div class="anon">&#128100; Anonymous Guest</div><div class="text">Pirates of the Caribbean is walk-on right now! Go before the parade. &#9875;</div><div class="time">2 min ago</div></div>
+    <div class="tip-card"><div class="anon">&#128100; Anonymous Guest</div><div class="text">Casey's Corner has a shorter line today. Corn dogs are great! &#127789;</div><div class="time">7 min ago</div></div>
+  </div>
+</div>
+
+<!-- MEETUP -->
+<div class="screen" id="screen-meetup">
+  <div class="section-title">&#128101; Meetup Board</div>
+  <div class="post-form">
+    <div style="font-size:11px;font-weight:700;color:#0d9488;margin-bottom:7px">&#128101; Create a Meetup</div>
+    <select id="meetup-location">
+      <option value="">Select meetup spot...</option>
+      <option>Cinderella Castle &#127984;</option>
+      <option>Main Street USA &#11088;</option>
+      <option>Spaceship Earth &#127758;</option>
+      <option>Hollywood Blvd &#127908;</option>
+      <option>Discovery Island &#127807;</option>
+      <option>Galaxy's Edge &#128640;</option>
+      <option>Pandora &#129411;</option>
+      <option>World Showcase &#127758;</option>
+    </select>
+    <textarea id="meetup-input" rows="2" placeholder="e.g. Looking for Dole Whip buddies at 2pm &#127808;"></textarea>
+    <button class="submit-btn" style="background:#0d9488;color:white" onclick="postMeetup()">Post Meetup &#128101;</button>
+  </div>
+  <div class="section-title" style="font-size:16px">Active Meetups</div>
+  <div id="meetups-feed">
+    <div class="meetup-card"><span class="loc-tag">Cinderella Castle &#127984;</span><div style="font-size:12px;color:#374151">Watch the fireworks from the best spot! Meeting at 8:45pm &#127881;</div><div class="time" style="font-size:10px;color:#9ca3af;margin-top:3px">15 min ago</div></div>
+    <div class="meetup-card"><span class="loc-tag">World Showcase &#127758;</span><div style="font-size:12px;color:#374151">Solo traveler looking for an EPCOT buddy. All day. &#128515;</div><div class="time" style="font-size:10px;color:#9ca3af;margin-top:3px">32 min ago</div></div>
+  </div>
+</div>
+
+<!-- HIDDEN MICKEY -->
+<div class="screen" id="screen-mickey">
+  <div class="section-title">&#9679; Hidden Mickey Finder</div>
+  <div class="found-counter" id="found-counter">&#127775; 0 / 8 Hidden Mickeys Found</div>
+  <div class="mickey-grid">
+    <div class="mickey-card" onclick="markFound(this,0)"><div class="found-badge">FOUND!</div><div class="mickey-icon">&#127863;</div><h4>Haunted Mansion</h4><p>Check the ballroom scene</p></div>
+    <div class="mickey-card" onclick="markFound(this,1)"><div class="found-badge">FOUND!</div><div class="mickey-icon">&#127752;</div><h4>Space Mountain</h4><p>In the queue near the stars</p></div>
+    <div class="mickey-card" onclick="markFound(this,2)"><div class="found-badge">FOUND!</div><div class="mickey-icon">&#9875;</div><h4>Pirates Ride</h4><p>Near the first drop rocks</p></div>
+    <div class="mickey-card" onclick="markFound(this,3)"><div class="found-badge">FOUND!</div><div class="mickey-icon">&#127880;</div><h4>Main St. Bakery</h4><p>Hidden in ceiling tiles</p></div>
+    <div class="mickey-card" onclick="markFound(this,4)"><div class="found-badge">FOUND!</div><div class="mickey-icon">&#127822;</div><h4>Jungle Cruise</h4><p>On the temple ruins</p></div>
+    <div class="mickey-card" onclick="markFound(this,5)"><div class="found-badge">FOUND!</div><div class="mickey-icon">&#9832;</div><h4>Spaceship Earth</h4><p>Inside the ride scene</p></div>
+    <div class="mickey-card" onclick="markFound(this,6)"><div class="found-badge">FOUND!</div><div class="mickey-icon">&#127881;</div><h4>Animal Kingdom</h4><p>Near the Tree of Life</p></div>
+    <div class="mickey-card" onclick="markFound(this,7)"><div class="found-badge">FOUND!</div><div class="mickey-icon">&#127984;</div><h4>Cinderella Castle</h4><p>In the mosaic archway</p></div>
+  </div>
+</div>
+
+<!-- FAVORITES -->
+<div class="screen" id="screen-favs">
+  <div class="section-title">&#9733; Saved Favorites</div>
+  <div id="favs-list"><div class="empty-state"><div class="emoji">&#9733;</div><p>No favorites yet! Tap &#9734; on map locations to save them here.</p></div></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-btn active" id="nav-home" onclick="goTo('home')"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Home</button>
+  <button class="nav-btn" id="nav-map" onclick="goTo('map')"><svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>Map</button>
+  <button class="nav-btn" id="nav-tips" onclick="goTo('tips')"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>Tips</button>
+  <button class="nav-btn" id="nav-meetup" onclick="goTo('meetup')"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Meetup</button>
+  <button class="nav-btn" id="nav-mickey" onclick="goTo('mickey')"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>Mickey</button>
+  <button class="nav-btn" id="nav-favs" onclick="goTo('favs')"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>Favs</button>
+</div>
+</div>
+
+<script>
+// ============================================================
+// PARK DATA — 4 Disney World Parks with SVG maps + attractions
+// ============================================================
+const PARKS = {
+  mk: {
+    name:'Magic Kingdom', emoji:'🏰', color:'#4a0080', tabBg:'#4a0080',
+    lands:[
+      {name:'Main Street USA',color:'#c8aa80'},
+      {name:'Adventureland',color:'#2d7a2d'},
+      {name:'Frontierland',color:'#8B6914'},
+      {name:'Liberty Square',color:'#8B4513'},
+      {name:'Fantasyland',color:'#7a3a9a'},
+      {name:'Tomorrowland',color:'#1a6b9a'},
+    ],
+    mapSvg:`<svg viewBox="0 0 340 230" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+<rect width="340" height="230" fill="#3d7a32" rx="10"/>
+<ellipse cx="170" cy="110" rx="153" ry="102" fill="#2d6224"/>
+<ellipse cx="170" cy="110" rx="153" ry="102" fill="none" stroke="#5a3a0a" stroke-width="7" stroke-dasharray="10,6"/>
+<polygon points="198,92 226,50 292,66 320,106 308,163 250,168 212,148 194,104" fill="#1a5f8a"/>
+<polygon points="116,46 142,70 154,100 196,100 216,76 226,50 194,26 144,24" fill="#7a3a9a"/>
+<polygon points="94,76 96,98 132,106 142,70 116,46 80,56" fill="#8B4513"/>
+<polygon points="20,82 22,135 68,118 94,76 80,56 54,60" fill="#8B6914"/>
+<polygon points="22,135 22,190 88,200 92,145 68,118" fill="#2d7a2d"/>
+<rect x="147" y="160" width="46" height="64" fill="#c8aa80" rx="3"/>
+<line x1="147" y1="150" x2="108" y2="132" stroke="#e8dcc8" stroke-width="10" stroke-linecap="round"/>
+<line x1="150" y1="141" x2="114" y2="102" stroke="#e8dcc8" stroke-width="10" stroke-linecap="round"/>
+<line x1="157" y1="133" x2="144" y2="98" stroke="#e8dcc8" stroke-width="10" stroke-linecap="round"/>
+<line x1="170" y1="128" x2="170" y2="96" stroke="#e8dcc8" stroke-width="10" stroke-linecap="round"/>
+<line x1="190" y1="138" x2="220" y2="108" stroke="#e8dcc8" stroke-width="10" stroke-linecap="round"/>
+<rect x="157" y="150" width="26" height="75" fill="#e8dcc8"/>
+<circle cx="170" cy="152" r="30" fill="#c8b89a"/>
+<ellipse cx="52" cy="150" rx="18" ry="13" fill="#4db8ff" opacity="0.8"/>
+<rect x="138" y="220" width="64" height="10" fill="#2d0b5c" rx="5"/>
+<text x="170" y="228" text-anchor="middle" font-size="7" fill="#ffd700" font-weight="bold">▲ ENTRANCE</text>
+<text x="170" y="188" text-anchor="middle" font-size="8" fill="#5a3a00" font-weight="bold">MAIN ST USA</text>
+<text x="50" y="163" text-anchor="middle" font-size="7" fill="white" font-weight="bold">ADVENTURE</text>
+<text x="46" y="108" text-anchor="middle" font-size="7" fill="white" font-weight="bold">FRONTIER</text>
+<text x="107" y="78" text-anchor="middle" font-size="6" fill="white" font-weight="bold">LIBERTY SQ</text>
+<text x="176" y="59" text-anchor="middle" font-size="8" fill="white" font-weight="bold">FANTASYLAND</text>
+<text x="264" y="118" text-anchor="middle" font-size="7" fill="white" font-weight="bold">TOMORROW</text>
+<text x="264" y="127" text-anchor="middle" font-size="7" fill="white" font-weight="bold">LAND</text>
+</svg>`,
+    attractions:[
+      {name:'Cinderella Castle',emoji:'🏰',info:'Iconic park centerpiece. Cinderella\'s Royal Table dining is inside! Great photo spot from the hub.',x:50,y:38},
+      {name:'Space Mountain',emoji:'🚀',info:'Classic indoor roller coaster through the cosmos. Best ridden early morning or with Lightning Lane!',x:77,y:62},
+      {name:'Seven Dwarfs Mine Train',emoji:'⛏️',info:'Most popular family coaster. Swaying cars through diamond mines. Always book Lightning Lane!',x:56,y:30},
+      {name:'Haunted Mansion',emoji:'👻',info:'999 happy haunts in Liberty Square. Great any time of day — usually moderate wait.',x:30,y:42},
+      {name:'Pirates of the Caribbean',emoji:'⚓',info:'Classic boat ride in Adventureland. Walk-on waits common in evenings. A must-do!',x:18,y:75},
+      {name:'Big Thunder Mountain',emoji:'⛰️',info:'"Wildest Ride in the Wilderness!" Great for all ages in Frontierland. Best at rope drop.',x:15,y:52},
+      {name:'Buzz Lightyear Blasters',emoji:'🎯',info:'Interactive shooting ride in Tomorrowland. Compete for points with your group!',x:82,y:74},
+      {name:'Jungle Cruise',emoji:'🌿',info:'Skipper-led boat tour in Adventureland. Famous for groan-worthy puns and animatronic animals.',x:15,y:83},
+    ],
+    nearby:[
+      {name:'Cinderella Castle',emoji:'🏰',desc:'Iconic park centerpiece. Great photos from the hub!'},
+      {name:'Main Street USA',emoji:'⭐',desc:'Shops, snacks, and classic Disney atmosphere at the entrance.'},
+      {name:'Tomorrowland',emoji:'🚀',desc:'Space Mountain, Buzz Lightyear, Carousel of Progress.'},
+      {name:'Fantasyland',emoji:'🦄',desc:'Seven Dwarfs Mine Train, Peter Pan\'s Flight, It\'s a Small World.'},
+    ]
+  },
+
+  epcot: {
+    name:'EPCOT', emoji:'🌐', color:'#00607a', tabBg:'#00607a',
+    lands:[
+      {name:'World Discovery',color:'#1a5f8a'},
+      {name:'World Nature',color:'#2d7a3a'},
+      {name:'World Celebration',color:'#7a3a9a'},
+      {name:'World Showcase',color:'#3a9ae0'},
+    ],
+    mapSvg:`<svg viewBox="0 0 340 230" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+<rect width="340" height="230" fill="#2d6b4a" rx="10"/>
+<ellipse cx="170" cy="78" rx="112" ry="58" fill="#3a9ae0"/>
+<ellipse cx="170" cy="78" rx="130" ry="73" fill="none" stroke="#d4b878" stroke-width="20"/>
+<polygon points="175,148 300,143 320,180 310,222 175,222" fill="#1a5f8a" opacity="0.92"/>
+<polygon points="24,180 36,143 165,148 165,222 24,222" fill="#2d7a3a" opacity="0.92"/>
+<polygon points="165,148 175,148 175,222 165,222" fill="#7a3a9a" opacity="0.92"/>
+<rect x="158" y="132" width="24" height="92" fill="#e8dcc8"/>
+<circle cx="170" cy="170" r="15" fill="#c0c8d4"/>
+<circle cx="170" cy="78" r="16" fill="#e8dcc8" opacity="0.3"/>
+<text x="170" y="78" text-anchor="middle" dominant-baseline="middle" font-size="8" fill="white" font-weight="bold">LAGOON</text>
+<text x="240" y="188" text-anchor="middle" font-size="7" fill="white" font-weight="bold">WORLD DISCOVERY</text>
+<text x="88" y="188" text-anchor="middle" font-size="7" fill="white" font-weight="bold">WORLD NATURE</text>
+<text x="170" y="200" text-anchor="middle" font-size="6" fill="white" font-weight="bold">CELEBRATION</text>
+<text x="170" y="130" text-anchor="middle" font-size="6" fill="#ffd700" font-weight="bold">← WORLD SHOWCASE →</text>
+<text x="43" y="96" text-anchor="middle" font-size="13">🇲🇽</text>
+<text x="58" y="52" text-anchor="middle" font-size="13">🇳🇴</text>
+<text x="100" y="22" text-anchor="middle" font-size="12">🇨🇳</text>
+<text x="140" y="10" text-anchor="middle" font-size="12">🇩🇪</text>
+<text x="170" y="7" text-anchor="middle" font-size="12">🇮🇹</text>
+<text x="200" y="10" text-anchor="middle" font-size="12">🇺🇸</text>
+<text x="234" y="22" text-anchor="middle" font-size="12">🇯🇵</text>
+<text x="263" y="48" text-anchor="middle" font-size="12">🇲🇦</text>
+<text x="280" y="78" text-anchor="middle" font-size="12">🇫🇷</text>
+<text x="280" y="108" text-anchor="middle" font-size="12">🇬🇧</text>
+<text x="248" y="112" text-anchor="middle" font-size="12">🇨🇦</text>
+<rect x="138" y="220" width="64" height="10" fill="#2d0b5c" rx="5"/>
+<text x="170" y="228" text-anchor="middle" font-size="7" fill="#ffd700" font-weight="bold">▲ ENTRANCE</text>
+</svg>`,
+    attractions:[
+      {name:'Spaceship Earth',emoji:'🌐',info:'Iconic geodesic sphere at the entrance. Slow dark ride through history of communication. Great family ride!',x:50,y:63},
+      {name:'Guardians of the Galaxy',emoji:'🎵',info:'World\'s first "reverse launch" coaster. Awesome Mix soundtrack! World Discovery. Book Lightning Lane!',x:83,y:74},
+      {name:'Test Track',emoji:'🚗',info:'Design a simulated vehicle then take it on a high-speed test. World Discovery. Fun for all ages.',x:82,y:86},
+      {name:'Frozen Ever After',emoji:'❄️',info:'Boat ride through Arendelle in Norway pavilion. Very popular — book Lightning Lane at park open!',x:16,y:24},
+      {name:'Remy\'s Ratatouille',emoji:'🐭',info:'Shrink to rat size in this trackless dark ride! France pavilion. Lines can be long — use Lightning Lane.',x:83,y:35},
+      {name:'Soarin\'',emoji:'🦅',info:'Hang-gliding simulator over beautiful global landscapes. World Nature. Iconic EPCOT must-do!',x:18,y:80},
+      {name:'American Adventure',emoji:'🗽',info:'Animatronic journey through US history with Ben Franklin & Mark Twain. Usually low wait!',x:60,y:8},
+      {name:'Harmonious',emoji:'🎆',info:'Massive nighttime spectacular on the World Showcase Lagoon. Best viewed from the promenade!',x:50,y:45},
+    ],
+    nearby:[
+      {name:'Spaceship Earth',emoji:'🌐',desc:'The iconic geodesic sphere at the park entrance.'},
+      {name:'World Showcase',emoji:'🌍',desc:'11 countries around the lagoon. Food, culture, and entertainment.'},
+      {name:'World Discovery',emoji:'🔬',desc:'Guardians of the Galaxy, Test Track, Mission: SPACE.'},
+      {name:'World Nature',emoji:'🌿',desc:'Soarin\', Living with the Land, The Seas with Nemo.'},
+    ]
+  },
+
+  hs: {
+    name:'Hollywood Studios', emoji:'🎬', color:'#8B0000', tabBg:'#8B0000',
+    lands:[
+      {name:'Galaxy\'s Edge',color:'#2d3a5a'},
+      {name:'Toy Story Land',color:'#e8a030'},
+      {name:'Sunset Blvd',color:'#7a4030'},
+      {name:'Grand Ave',color:'#4a5a2a'},
+    ],
+    mapSvg:`<svg viewBox="0 0 340 230" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+<rect width="340" height="230" fill="#b8945a" rx="10"/>
+<polygon points="10,10 10,128 102,128 118,88 106,10" fill="#2d3a5a"/>
+<polygon points="222,10 222,98 318,98 338,10" fill="#e8a030"/>
+<polygon points="10,128 102,128 102,182 10,182" fill="#4a5a2a"/>
+<polygon points="102,138 222,138 222,182 102,182" fill="#7a4a2a"/>
+<polygon points="95,128 168,165 128,182 10,182 10,128" fill="#7a4030"/>
+<ellipse cx="115" cy="152" rx="28" ry="18" fill="#4db8ff" opacity="0.8"/>
+<rect x="157" y="165" width="30" height="60" fill="#e8dcc8"/>
+<rect x="157" y="100" width="30" height="70" fill="#e8dcc8"/>
+<line x1="100" y1="130" x2="157" y2="165" stroke="#e8dcc8" stroke-width="12" stroke-linecap="round"/>
+<text x="170" y="158" text-anchor="middle" font-size="14">🎬</text>
+<text x="52" y="64" text-anchor="middle" font-size="8" fill="#a0c0ff" font-weight="bold">STAR WARS</text>
+<text x="52" y="74" text-anchor="middle" font-size="8" fill="#a0c0ff" font-weight="bold">GALAXY'S EDGE</text>
+<text x="274" y="52" text-anchor="middle" font-size="8" fill="#2d0b5c" font-weight="bold">TOY STORY</text>
+<text x="274" y="62" text-anchor="middle" font-size="8" fill="#2d0b5c" font-weight="bold">LAND</text>
+<text x="48" y="160" text-anchor="middle" font-size="7" fill="white" font-weight="bold">ANIMATION</text>
+<text x="48" y="169" text-anchor="middle" font-size="7" fill="white" font-weight="bold">COURTYARD</text>
+<text x="160" y="162" text-anchor="middle" font-size="6" fill="white" font-weight="bold">GRAND AVE</text>
+<text x="80" y="147" text-anchor="middle" font-size="6" fill="#ffddaa" font-weight="bold">SUNSET BLVD</text>
+<text x="115" y="152" text-anchor="middle" font-size="6" fill="#2d5a8a" font-weight="bold">ECHO</text>
+<text x="115" y="160" text-anchor="middle" font-size="5" fill="#2d5a8a" font-weight="bold">LAKE</text>
+<text x="170" y="205" text-anchor="middle" font-size="7" fill="#5a3a00" font-weight="bold">HOLLYWOOD BLVD</text>
+<rect x="138" y="220" width="64" height="10" fill="#2d0b5c" rx="5"/>
+<text x="170" y="228" text-anchor="middle" font-size="7" fill="#ffd700" font-weight="bold">▲ ENTRANCE</text>
+</svg>`,
+    attractions:[
+      {name:'Rise of the Resistance',emoji:'⚔️',info:'Most immersive Disney attraction ever! Galaxy\'s Edge. Book Individual Lightning Lane at 7am sharp — sells out instantly.',x:16,y:28},
+      {name:'Millennium Falcon',emoji:'🚀',info:'Fly the Kessel Run as pilot, gunner, or engineer. Galaxy\'s Edge. Walk-on waits after morning rush!',x:20,y:60},
+      {name:'Tower of Terror',emoji:'🏚️',info:'Drop 13 stories in the Hollywood Tower Hotel! Sunset Blvd icon. Thrilling and unpredictable drops.',x:20,y:78},
+      {name:'Rock \'n\' Roller Coaster',emoji:'🎸',info:'Launch 0-60 mph in 2.8 seconds to Aerosmith! Sunset Blvd. Inversions. Must be 48" tall.',x:26,y:90},
+      {name:'Slinky Dog Dash',emoji:'🐾',info:'Family coaster through Andy\'s backyard. Toy Story Land. Best at rope drop — lines grow fast!',x:82,y:30},
+      {name:'Mickey & Minnie\'s Railway',emoji:'🎠',info:'Trackless dark ride through a Mickey cartoon. Very popular — get Lightning Lane or arrive at rope drop.',x:50,y:64},
+      {name:'Alien Swirling Saucers',emoji:'👾',info:'Spinning saucer ride in Toy Story Land. Fun filler ride with short waits most of the day.',x:86,y:50},
+      {name:'Fantasmic!',emoji:'🔥',info:'Epic nighttime spectacular with Mickey, villains, and water effects! Sunset Blvd. Arrive 30 min early.',x:10,y:90},
+    ],
+    nearby:[
+      {name:'Galaxy\'s Edge',emoji:'⚔️',desc:'Star Wars land with Rise of the Resistance and Millennium Falcon.'},
+      {name:'Toy Story Land',emoji:'🐾',desc:'Slinky Dog Dash, Alien Swirling Saucers, Toy Story Mania!'},
+      {name:'Sunset Boulevard',emoji:'🌅',desc:'Tower of Terror, Rock \'n\' Roller Coaster, Fantasmic!'},
+      {name:'Hollywood Blvd',emoji:'🎬',desc:'Mickey & Minnie\'s Railway, Chinese Theatre, Savi\'s Workshop.'},
+    ]
+  },
+
+  ak: {
+    name:'Animal Kingdom', emoji:'🌿', color:'#1a4a00', tabBg:'#1a4a00',
+    lands:[
+      {name:'Africa',color:'#8B6914'},
+      {name:'Asia',color:'#8B4513'},
+      {name:'Pandora',color:'#4a2a7a'},
+      {name:'DinoLand',color:'#c8a030'},
+    ],
+    mapSvg:`<svg viewBox="0 0 340 230" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+<rect width="340" height="230" fill="#2d6b2d" rx="10"/>
+<polygon points="22,102 100,102 112,170 22,185" fill="#8B6914"/>
+<polygon points="22,185 100,185 95,222 22,222" fill="#4a2a7a"/>
+<ellipse cx="170" cy="112" rx="88" ry="67" fill="#4db8ff" opacity="0.8"/>
+<polygon points="246,92 332,78 332,178 246,173 230,118" fill="#8B4513"/>
+<polygon points="238,173 332,178 332,222 200,222 196,190" fill="#c8a030"/>
+<rect x="132" y="188" width="76" height="40" fill="#3a8a2a" rx="4"/>
+<ellipse cx="170" cy="112" rx="64" ry="50" fill="#3a7a2a"/>
+<ellipse cx="170" cy="112" rx="38" ry="29" fill="none" stroke="#e8dcc8" stroke-width="9"/>
+<rect x="158" y="158" width="24" height="68" fill="#e8dcc8"/>
+<ellipse cx="22" cy="88" rx="18" ry="22" fill="#4a8a2a"/>
+<line x1="40" y1="90" x2="90" y2="105" stroke="#5a3a0a" stroke-width="3" stroke-dasharray="5,4"/>
+<circle cx="170" cy="106" r="15" fill="#1a5a1a"/>
+<text x="170" y="111" text-anchor="middle" font-size="16">🌳</text>
+<rect x="138" y="220" width="64" height="10" fill="#2d0b5c" rx="5"/>
+<text x="170" y="228" text-anchor="middle" font-size="7" fill="#ffd700" font-weight="bold">▲ ENTRANCE</text>
+<text x="22" y="88" text-anchor="middle" font-size="5" fill="white" font-weight="bold">RAFIKI'S</text>
+<text x="55" y="140" text-anchor="middle" font-size="7" fill="white" font-weight="bold">AFRICA</text>
+<text x="48" y="200" text-anchor="middle" font-size="7" fill="#c8a0ff" font-weight="bold">PANDORA</text>
+<text x="284" y="130" text-anchor="middle" font-size="7" fill="white" font-weight="bold">ASIA</text>
+<text x="268" y="200" text-anchor="middle" font-size="7" fill="#2d0b5c" font-weight="bold">DINOLAND</text>
+<text x="170" y="107" text-anchor="middle" font-size="5" fill="white" font-weight="bold">DISC. ISLAND</text>
+<text x="170" y="210" text-anchor="middle" font-size="7" fill="#1a5a1a" font-weight="bold">THE OASIS</text>
+</svg>`,
+    attractions:[
+      {name:'Flight of Passage',emoji:'🦋',info:'#1 Disney attraction! Soar on a banshee over Pandora in breathtaking 3D. Always book Lightning Lane.',x:18,y:80},
+      {name:'Na\'vi River Journey',emoji:'🌊',info:'Beautiful glowing boat through bioluminescent Pandora forest. Stunning visuals, shorter waits than FoP.',x:18,y:92},
+      {name:'Kilimanjaro Safaris',emoji:'🦁',info:'Open-air truck safari with REAL African animals on 110 acres. Best in the morning when animals are active!',x:18,y:52},
+      {name:'Expedition Everest',emoji:'🏔️',info:'High-speed coaster with a Yeti encounter in Asia! One of Disney\'s best thrill rides. 44" height requirement.',x:82,y:50},
+      {name:'Kali River Rapids',emoji:'💧',info:'White-water raft ride through Asia\'s lush rainforest. You WILL get soaked. Great on hot days!',x:85,y:65},
+      {name:'Tree of Life',emoji:'🌳',info:'14-story carved baobab tree with 325 animals carved in. "It\'s Tough to be a Bug!" show inside!',x:50,y:38},
+      {name:'DINOSAUR',emoji:'🦕',info:'Time-travel to rescue a dinosaur! Dark, bumpy, intense. DinoLand USA. Great for thrill seekers.',x:82,y:82},
+      {name:'Festival of the Lion King',emoji:'🎭',info:'Energetic Broadway-style show in Africa with acrobats, beloved songs. Usually lower waits. Don\'t miss it!',x:20,y:62},
+    ],
+    nearby:[
+      {name:'Pandora',emoji:'🦋',desc:'Flight of Passage, Na\'vi River Journey — Avatar themed land.'},
+      {name:'Africa',emoji:'🦁',desc:'Kilimanjaro Safaris, Festival of the Lion King, Gorilla Falls.'},
+      {name:'Asia',emoji:'🏔️',desc:'Expedition Everest, Kali River Rapids, Maharajah Jungle Trek.'},
+      {name:'Discovery Island',emoji:'🌳',desc:'Tree of Life at the center, pathways to all lands.'},
+    ]
+  }
+};
+
+// ============================================================
+// APP STATE
+// ============================================================
+const state = {
+  currentPark: 'mk',
+  tips: [],
+  meetups: [],
+  favorites: {},
+  mickeysFound: new Set()
+};
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function goTo(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+  document.getElementById('nav-' + screen).classList.add('active');
+  updateHomeCounts();
+}
+
+// ============================================================
+// PARK MAP
+// ============================================================
+function selectPark(key) {
+  state.currentPark = key;
+  const park = PARKS[key];
+
+  // Tab styles
+  document.querySelectorAll('.park-tab').forEach(t => {
+    t.classList.remove('active');
+    t.style.background = 'white';
+    t.style.color = '#8b6abf';
+  });
+  const activeTab = document.getElementById('tab-' + key);
+  activeTab.classList.add('active');
+  activeTab.style.background = park.tabBg;
+  activeTab.style.color = 'white';
+  activeTab.style.borderColor = park.tabBg;
+
+  // Render SVG map
+  document.getElementById('map-svg-slot').innerHTML = park.mapSvg;
+
+  // Render attraction pins
+  const pinLayer = document.getElementById('pin-layer');
+  pinLayer.innerHTML = '';
+  park.attractions.forEach((a, i) => {
+    const pin = document.createElement('div');
+    pin.className = 'apin';
+    pin.style.left = a.x + '%';
+    pin.style.top = a.y + '%';
+    pin.style.background = park.tabBg;
+    pin.innerHTML = a.emoji;
+    pin.title = a.name;
+    pin.onclick = () => showAttractionInfo(key, i);
+    pinLayer.appendChild(pin);
+  });
+
+  // Render land legend
+  const legendEl = document.getElementById('map-legend');
+  legendEl.innerHTML = park.lands.map(l =>
+    `<span class="legend-chip" style="background:${l.color}22;color:${l.color};border-color:${l.color}44">${l.name}</span>`
+  ).join('');
+
+  // Render nearby list
+  const nearbyEl = document.getElementById('nearby-list');
+  nearbyEl.innerHTML = park.nearby.map(n =>
+    `<div class="location-detail">
+      <button class="fav-btn" onclick="toggleFav(this,'${n.name}','${n.emoji}','${park.name}')">${state.favorites[n.name] ? '★' : '☆'}</button>
+      <h3>${n.emoji} ${n.name}</h3>
+      <p>${n.desc}</p>
+    </div>`
+  ).join('');
+
+  // Reset panel
+  document.getElementById('attr-panel').innerHTML = '<div class="hint">👇 Tap a pin on the map to see attraction details</div>';
+}
+
+function showAttractionInfo(parkKey, idx) {
+  const a = PARKS[parkKey].attractions[idx];
+  const panel = document.getElementById('attr-panel');
+  panel.style.borderColor = PARKS[parkKey].tabBg;
+  panel.innerHTML = `<h3>${a.emoji} ${a.name}</h3><p>${a.info}</p>`;
+  showToast('📍 ' + a.name);
+}
+
+// ============================================================
+// FAVORITES
+// ============================================================
+function toggleFav(btn, name, emoji, parkName) {
+  if (state.favorites[name]) {
+    delete state.favorites[name];
+    btn.textContent = '☆';
+    btn.style.color = '';
+    showToast(name + ' removed');
+  } else {
+    state.favorites[name] = { name, emoji, parkName };
+    btn.textContent = '★';
+    btn.style.color = '#ffd700';
+    showToast('⭐ Saved: ' + name);
+  }
+  renderFavorites();
+  updateHomeCounts();
+}
+
+function removeFavDirect(name) {
+  delete state.favorites[name];
+  renderFavorites();
+  updateHomeCounts();
+  selectPark(state.currentPark); // re-render map buttons
+  showToast(name + ' removed');
+}
+
+function renderFavorites() {
+  const list = document.getElementById('favs-list');
+  const keys = Object.keys(state.favorites);
+  if (!keys.length) {
+    list.innerHTML = '<div class="empty-state"><div class="emoji">⭐</div><p>No favorites yet! Tap ☆ on map locations to save them here.</p></div>';
+    document.getElementById('home-fav-text').textContent = 'Tap ☆ on map locations to save them!';
+    return;
+  }
+  list.innerHTML = keys.map(k => {
+    const f = state.favorites[k];
+    return `<div class="fav-item">
+      <div class="fav-dot">${f.emoji}</div>
+      <div class="fav-info"><h4>${f.name}</h4><p>${f.parkName}</p></div>
+      <button class="remove-fav" onclick="removeFavDirect('${k}')">✕</button>
+    </div>`;
+  }).join('');
+  document.getElementById('home-fav-text').textContent = keys.length + ' location(s) saved!';
+}
+
+// ============================================================
+// TIPS
+// ============================================================
+function postTip() {
+  const input = document.getElementById('tip-input');
+  const text = input.value.trim();
+  if (!text) { showToast('Write a tip first! 📝'); return; }
+  state.tips.unshift({ text, time: 'Just now' });
+  input.value = '';
+  renderTips();
+  updateHomeCounts();
+  showToast('✨ Tip posted anonymously!');
+}
+
+function renderTips() {
+  const feed = document.getElementById('tips-feed');
+  const userHtml = state.tips.map(t =>
+    `<div class="tip-card"><div class="anon">👤 Anonymous Guest</div><div class="text">${esc(t.text)}</div><div class="time">${t.time}</div></div>`
+  ).join('');
+  const defaults = `
+    <div class="tip-card"><div class="anon">👤 Anonymous Guest</div><div class="text">Pirates of the Caribbean is walk-on right now! Go before the parade. ⚓</div><div class="time">2 min ago</div></div>
+    <div class="tip-card"><div class="anon">👤 Anonymous Guest</div><div class="text">Casey's Corner has a shorter line today. Corn dogs are great! 🌭</div><div class="time">7 min ago</div></div>`;
+  feed.innerHTML = userHtml + defaults;
+}
+
+// ============================================================
+// MEETUPS
+// ============================================================
+function postMeetup() {
+  const loc = document.getElementById('meetup-location').value;
+  const text = document.getElementById('meetup-input').value.trim();
+  if (!loc) { showToast('Pick a meetup spot! 📍'); return; }
+  if (!text) { showToast('Add a description! 👥'); return; }
+  state.meetups.unshift({ loc, text, time: 'Just now' });
+  document.getElementById('meetup-input').value = '';
+  document.getElementById('meetup-location').value = '';
+  renderMeetups();
+  updateHomeCounts();
+  showToast('👥 Meetup posted!');
+}
+
+function renderMeetups() {
+  const feed = document.getElementById('meetups-feed');
+  const userHtml = state.meetups.map(m =>
+    `<div class="meetup-card"><span class="loc-tag">${esc(m.loc)}</span><div style="font-size:12px;color:#374151">${esc(m.text)}</div><div style="font-size:10px;color:#9ca3af;margin-top:3px">${m.time}</div></div>`
+  ).join('');
+  const defaults = `
+    <div class="meetup-card"><span class="loc-tag">Cinderella Castle 🏰</span><div style="font-size:12px;color:#374151">Watch the fireworks from the best spot! 8:45pm 🎆</div><div style="font-size:10px;color:#9ca3af;margin-top:3px">15 min ago</div></div>
+    <div class="meetup-card"><span class="loc-tag">World Showcase 🌍</span><div style="font-size:12px;color:#374151">Solo traveler looking for an EPCOT buddy! All day 😄</div><div style="font-size:10px;color:#9ca3af;margin-top:3px">32 min ago</div></div>`;
+  feed.innerHTML = userHtml + defaults;
+}
+
+// ============================================================
+// HIDDEN MICKEY
+// ============================================================
+function markFound(card, idx) {
+  if (state.mickeysFound.has(idx)) {
+    state.mickeysFound.delete(idx);
+    card.classList.remove('found');
+    showToast('Unmarked Mickey #' + (idx + 1));
+  } else {
+    state.mickeysFound.add(idx);
+    card.classList.add('found');
+    showToast('🌟 Hidden Mickey found!');
+  }
+  document.getElementById('found-counter').textContent = '✨ ' + state.mickeysFound.size + ' / 8 Hidden Mickeys Found';
+  updateHomeCounts();
+}
+
+// ============================================================
+// UTILITIES
+// ============================================================
+function updateHomeCounts() {
+  document.getElementById('home-tips-count').textContent = (state.tips.length + 2) + ' tips';
+  document.getElementById('home-meetup-count').textContent = (state.meetups.length + 2) + ' meetups';
+  document.getElementById('home-mickey-count').textContent = state.mickeysFound.size + ' / 8 found';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function esc(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Boot
+selectPark('mk');
+updateHomeCounts();
+</script>
+</body>
+</html>
