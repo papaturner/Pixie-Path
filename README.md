@@ -1,4 +1,4 @@
-//# Pixie Path 🏰
+//                                                    Pixie Path 
 
 //Disney World companion app for Android.
 
