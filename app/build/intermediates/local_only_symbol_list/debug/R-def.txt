@@ -1,7 +1,10 @@
 R_DEF: Internal format may change without notice
 local
 color purple_dark
+drawable ic_foreground_safe
 drawable splash_bg
+id splash_bg
+id splash_tagline
 id webView
 layout activity_main
 layout activity_splash
@@ -10,3 +13,4 @@ mipmap ic_launcher_background
 mipmap ic_launcher_foreground
 mipmap ic_launcher_round
 string app_name
+xml file_paths

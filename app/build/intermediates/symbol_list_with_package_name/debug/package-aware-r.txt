@@ -624,6 +624,7 @@ drawable ic_call_answer_video
 drawable ic_call_answer_video_low
 drawable ic_call_decline
 drawable ic_call_decline_low
+drawable ic_foreground_safe
 drawable notification_action_background
 drawable notification_bg
 drawable notification_bg_low
@@ -779,6 +780,8 @@ id showHome
 id showTitle
 id spacer
 id special_effects_controller_view_tag
+id splash_bg
+id splash_tagline
 id split_action_bar
 id src_atop
 id src_in
@@ -1315,3 +1318,4 @@ styleable Toolbar android_gravity android_minHeight buttonGravity collapseConten
 styleable View android_theme android_focusable paddingEnd paddingStart theme
 styleable ViewBackgroundHelper android_background backgroundTint backgroundTintMode
 styleable ViewStubCompat android_id android_layout android_inflatedId
+xml file_paths

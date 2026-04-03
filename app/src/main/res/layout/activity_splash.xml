@@ -2,12 +2,31 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000">
+    android:background="#0a001a">
+
+    <!-- Background: fills screen with image, dark edges bleed into bg color -->
     <ImageView
+        android:id="@+id/splash_bg"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:src="@drawable/splash_bg"
         android:scaleType="fitXY"
         android:adjustViewBounds="false"
+        android:alpha="0"
         android:contentDescription="Pixie Path" />
+
+    <!-- Sparkle overlay text -->
+    <TextView
+        android:id="@+id/splash_tagline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="48dp"
+        android:text="Your Disney World Companion ✨"
+        android:textColor="#FFD700"
+        android:textSize="15sp"
+        android:fontFamily="sans-serif-medium"
+        android:alpha="0"
+        android:letterSpacing="0.05" />
+
 </FrameLayout>
